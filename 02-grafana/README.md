@@ -51,16 +51,16 @@
 
 ### Решение
 
-`100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100)` - CPU Usage
-`node_load1` - Load Average 1 min
-`node_load5` - Load Average 5 min
-`node_load15` - Load Average 15 min
+- `100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100)` - CPU Usage
+- `node_load1` - Load Average 1 min
+- `node_load5` - Load Average 5 min
+- `node_load15` - Load Average 15 min
 
-`node_memory_MemAvailable_bytes / 1024 /1024 /1024` - Available Memory (GB)
-`(node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100` - Available Memory (%)
+- `node_memory_MemAvailable_bytes / 1024 /1024 /1024` - Available Memory (GB)
+- `(node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100` - Available Memory (%)
 
-`node_filesystem_avail_bytes{mountpoint="/"} / 1024 / 1024 / 1024` - Available Disk Space (GB)
-`(1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) * 100` - Available Disk Space (%)
+- `node_filesystem_avail_bytes{mountpoint="/"} / 1024 / 1024 / 1024` - Available Disk Space (GB)
+- `(1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) * 100` - Available Disk Space (%)
 
 ![](img/img-02-01.png)
 
