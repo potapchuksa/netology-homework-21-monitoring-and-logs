@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  elasticsearch-hot:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: es-hot
+    environment:
+      - node.name=es-hot
+      - cluster.name=es-cluster
+      - discovery.seed_hosts=es-warm
+      - cluster.initial_master_nodes=es-hot,es-warm
+      - node.attr.box_type=hot
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    networks:
+      - elk
+
+  elasticsearch-warm:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: es-warm
+    environment:
+      - node.name=es-warm
+      - cluster.name=es-cluster
+      - discovery.seed_hosts=es-hot
+      - cluster.initial_master_nodes=es-hot,es-warm
+      - node.attr.box_type=warm
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - elk
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: logstash
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+    ports:
+      - "5044:5044"
+      - "5000:5000"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    networks:
+      - elk
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: '["http://es-hot:9200"]'
+    networks:
+      - elk
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.11.0
+    container_name: filebeat
+    user: root
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - elk
+    command: filebeat -e -strict.perms=false
+
+  pinger:
+    image: python:3.9-slim
+    container_name: pinger
+    working_dir: /app
+    volumes:
+      - ./pinger:/app
+    command: python run.py
+    networks:
+      - elk
+
+networks:
+  elk:
+    driver: bridge
